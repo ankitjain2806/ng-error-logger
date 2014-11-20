@@ -1,0 +1,33 @@
+{
+    "name": "ng-error-logger",
+    "version": "0.0.1",
+    "description": "An AngularJS directive for logging client side errors on the server",
+    "main": ["dist/ng-error-logger.js"],
+    "license": "MIT",
+    "keywords": [
+      "log",
+      "logger",
+      "ng-logger",
+      "client-logger",
+      "client-logging",
+      "client-side-logger",
+      "client-side-logging"
+    ],
+    "authors": [
+        "Ankit Jain"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ankitjain2806/ng-error-logger"
+    },
+    "dependencies": {
+        "angular": "~1.2",
+        "stacktrace-js": "~0.6.4"
+    },
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "lib"
+    ]
+}
