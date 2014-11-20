@@ -1,6 +1,6 @@
 /**************************************************************************
-* AngularJS-nvD3, v0.0.9; MIT License; 07/24/2014 12:59
-* http://krispo.github.io/angular-nvd3
+* AngularJS-ng-error-logger, v0.0.9; MIT License;
+* Author: Ankit Jain
 **************************************************************************/
 (function(){
 
@@ -44,7 +44,7 @@
               // exists and will simply return a 404.
               $.ajax({
                 type: "POST",
-                url: "./log-client-errors",
+                url: "./logClientExceptions",
                 contentType: "application/json",
                 data: angular.toJson({
                   errorUrl: $window.location.href,
@@ -62,5 +62,53 @@
           // Return the logging function.
           return( log );
         }
-      );
+      )
+      // register the interceptor as a service
+      .factory('angularHTTPInterceptor', function($q) {
+        return {
+          // optional method
+          'request': function(config) {
+            // do something on success
+            return config;
+          },
+
+          // optional method
+         'requestError': function(rejection) {
+            // do something on error
+            if (canRecover(rejection)) {
+              return responseOrNewPromise
+            }
+            return $q.reject(rejection);
+          },
+
+          // optional method
+          'response': function(response) {
+            // do something on success
+            return response;
+          },
+
+          // optional method
+         'responseError': function(rejection) {
+            // do something on error
+            var httpErrorUrls = "./logHttpErrors";
+            console.log(rejection);
+            try{
+              if(rejection.config.url != httpErrorUrls) {
+                $.ajax({
+                  type: "POST",
+                  url: "./logHttpErrors",
+                  contentType: "application/json",
+                  data: angular.toJson(rejection)
+                });
+              }
+            } catch(e) {
+              console.log(e);
+            }
+            return $q.reject(rejection);
+          }
+        };
+      })
+      .config(function($httpProvider){
+        $httpProvider.interceptors.push('angularHTTPInterceptor'); //Push the interceptor here
+      });
 })();
