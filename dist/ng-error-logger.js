@@ -17,7 +17,58 @@
         }
       )
       .provider(
-        "$exceptionHandler",
+        'errorLogger',function() {
+          this.config = {};
+          this.config.httpErrorLogUrl = './api/logHttpErrors';
+          this.config.clientExceptionLogUrl = './api/logClientExceptions';
+          this.config.httpErrorLogging = false;
+          this.config.clientExceptionLogging = false;
+          this.initializeConfig = function(httpErrorLogUrl, httpErrorLoggingStatus, clientExceptionLogUrl, clientExceptionLoggingStatus) {
+            this.config.httpErrorLogUrl = httpErrorLogUrl;
+            this.config.clientExceptionLogUrl = clientExceptionLogUrl;
+            this.config.httpErrorLogging = httpErrorLoggingStatus;
+            this.config.clientExceptionLogging = clientExceptionLoggingStatus;
+          }
+          this.initializeHttpLoggingConfig = function(httpErrorLogUrl, httpErrorLoggingStatus) {
+            this.config.httpErrorLogUrl = httpErrorLogUrl;
+            this.config.httpErrorLogging = httpErrorLoggingStatus;
+          }
+          this.initializeExceptionLoggingConfig = function(clientExceptionLogUrl, clientExceptionLoggingStatus) {
+            this.config.clientExceptionLogUrl = clientExceptionLogUrl;
+            this.config.clientExceptionLogging = clientExceptionLoggingStatus;
+          }
+          this.setHttpErrorLogUrl = function(url) {
+            this.config.httpErrorLogUrl = url;
+          }
+          this.setClientExceptionLogUrl = function(url) {
+            this.config.clientExceptionLogUrl = url;
+          }
+          this.getHttpErrorLogURL = function() {
+            return this.config.httpErrorLogUrl;
+          }
+          this.getClientExceptionLogUrl = function() {
+            return this.config.clientExceptionLogUrl;
+          }
+          this.setHttpErrorLogging = function(status) {
+            this.config.httpErrorLogging = status;
+          }
+          this.setClientExceptionLogging = function(status) {
+            this.config.clientExceptionLogging = status;
+          }
+          this.isHttpErrorLoggingOn = function(status) {
+            return this.config.httpErrorLogging;
+          }
+          this.isClientExceptionLoggingOn = function(status) {
+            return this.config.clientExceptionLogging;
+          }
+
+          this.$get = function() {
+            return( this );
+          }
+        }
+      )
+      .provider(
+        '$exceptionHandler',
         {
           $get: function( errorLogService ) {
             return( errorLogService );
@@ -25,14 +76,15 @@
         }
       )
       .factory(
-        "errorLogService",
-        function( $log, $window, stacktraceService ) {
+        'errorLogService',
+        function( $log, $window, stacktraceService, errorLogger ) {
           function log( exception, cause ) {
             // Pass off the error to the default error handler
             // on the AngularJS logger. This will output the
             // error to the console (and let the application
             // keep running normally for the user).
             $log.error.apply( $log, arguments );
+            console.log(errorLogger.isClientExceptionLoggingOn());
             // Now, we need to try and log the error the server.
             // --
             try {
@@ -42,17 +94,19 @@
               // --
               // NOTE: In this demo, the POST URL doesn't
               // exists and will simply return a 404.
-              $.ajax({
-                type: "POST",
-                url: "./logClientExceptions",
-                contentType: "application/json",
-                data: angular.toJson({
-                  errorUrl: $window.location.href,
-                  errorMessage: errorMessage,
-                  stackTrace: stackTrace,
-                  cause: ( cause || "" )
-                })
-              });
+              if(errorLogger.isClientExceptionLoggingOn()) {
+                $.ajax({
+                  type: "POST",
+                  url: errorLogger.getClientExceptionLogUrl(),
+                  contentType: "application/json",
+                  data: angular.toJson({
+                    errorUrl: $window.location.href,
+                    errorMessage: errorMessage,
+                    stackTrace: stackTrace,
+                    cause: ( cause || "" )
+                  })
+                });
+              }
             } catch ( loggingError ) {
               // For Developers - log the log-failure.
               $log.warn( "Error logging failed" );
@@ -64,7 +118,7 @@
         }
       )
       // register the interceptor as a service
-      .factory('angularHTTPInterceptor', function($q) {
+      .factory('angularHTTPInterceptor', function($q, errorLogger) {
         return {
           // optional method
           'request': function(config) {
@@ -90,14 +144,13 @@
           // optional method
          'responseError': function(rejection) {
             // do something on error
-            var httpErrorUrls = "./logHttpErrors";
             console.log(rejection);
             try{
-              if(rejection.config.url != httpErrorUrls) {
+              if(errorLogger.isHttpErrorLoggingOn() && rejection.config.url != errorLogger.getHttpErrorLogURL()) {
                 $.ajax({
-                  type: "POST",
-                  url: "./logHttpErrors",
-                  contentType: "application/json",
+                  type: 'POST',
+                  url: errorLogger.getHttpErrorLogURL(),
+                  contentType: 'application/json',
                   data: angular.toJson(rejection)
                 });
               }
