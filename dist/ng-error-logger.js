@@ -97,6 +97,11 @@
               if(errorLogger.isClientExceptionLoggingOn()) {
                 $.ajax({
                   type: "POST",
+                  beforeSend: function (request) {
+                    if ($cookieStore.get('token')) {
+                      request.setRequestHeader('Authorization', 'Bearer ' + $cookieStore.get('token'));
+                    }
+                  },                  
                   url: errorLogger.getClientExceptionLogUrl(),
                   contentType: "application/json",
                   data: angular.toJson({
