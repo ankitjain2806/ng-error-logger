@@ -118,7 +118,7 @@
         }
       )
       // register the interceptor as a service
-      .factory('angularHTTPInterceptor', function($q, errorLogger) {
+      .factory('angularHTTPInterceptor', function($q, errorLogger, $cookieStore) {
         return {
           // optional method
           'request': function(config) {
@@ -149,6 +149,11 @@
               if(errorLogger.isHttpErrorLoggingOn() && rejection.config.url != errorLogger.getHttpErrorLogURL()) {
                 $.ajax({
                   type: 'POST',
+                  beforeSend: function (request) {
+                    if ($cookieStore.get('token')) {
+                      request.setRequestHeader('Authorization', 'Bearer ' + $cookieStore.get('token'));
+                    }
+                  },
                   url: errorLogger.getHttpErrorLogURL(),
                   contentType: 'application/json',
                   data: angular.toJson(rejection)
