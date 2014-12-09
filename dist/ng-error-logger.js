@@ -84,7 +84,6 @@
             // error to the console (and let the application
             // keep running normally for the user).
             $log.error.apply( $log, arguments );
-            console.log(errorLogger.isClientExceptionLoggingOn());
             // Now, we need to try and log the error the server.
             // --
             try {
@@ -97,11 +96,6 @@
               if(errorLogger.isClientExceptionLoggingOn()) {
                 $.ajax({
                   type: "POST",
-                  beforeSend: function (request) {
-                    if ($cookieStore.get('token')) {
-                      request.setRequestHeader('Authorization', 'Bearer ' + $cookieStore.get('token'));
-                    }
-                  },                  
                   url: errorLogger.getClientExceptionLogUrl(),
                   contentType: "application/json",
                   data: angular.toJson({
