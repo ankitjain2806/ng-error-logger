@@ -1,5 +1,5 @@
 /**************************************************************************
-* AngularJS-ng-error-logger, v0.0.9; MIT License;
+* AngularJS-ng-error-logger, v0.0.10; MIT License;
 * Author: Ankit Jain
 **************************************************************************/
 (function(){
@@ -77,7 +77,7 @@
       )
       .factory(
         'errorLogService',
-        function( $log, $window, stacktraceService, errorLogger ) {
+        ['$log', '$window', 'stacktraceService', 'errorLogger', function( $log, $window, stacktraceService, errorLogger ) {
           function log( exception, cause ) {
             // Pass off the error to the default error handler
             // on the AngularJS logger. This will output the
@@ -115,9 +115,9 @@
           // Return the logging function.
           return( log );
         }
-      )
+      ])
       // register the interceptor as a service
-      .factory('angularHTTPInterceptor', function($q, errorLogger, $cookieStore) {
+      .factory('angularHTTPInterceptor', ['$q', 'errorLogger', '$cookieStore', function($q, errorLogger, $cookieStore) {
         return {
           // optional method
           'request': function(config) {
@@ -164,8 +164,8 @@
             return $q.reject(rejection);
           }
         };
-      })
-      .config(function($httpProvider){
+      }])
+      .config('$httpProvider', function($httpProvider){
         $httpProvider.interceptors.push('angularHTTPInterceptor'); //Push the interceptor here
       });
 })();
