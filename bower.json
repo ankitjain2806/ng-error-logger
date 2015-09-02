@@ -1,6 +1,6 @@
 {
   "name": "ng-error-logger",
-  "version": "0.0.10",
+  "version": "1.0.6",
   "description": "An AngularJS directive for logging client side errors on the server",
   "main": [
     "dist/ng-error-logger.js"
